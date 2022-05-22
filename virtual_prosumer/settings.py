@@ -122,3 +122,10 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+
+PROSUMER_CONFIG = {
+    "server": "127.0.0.1",
+    "mqtt_port": 1883,
+    "vp_address": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+}
