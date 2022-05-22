@@ -1,0 +1,13 @@
+repos:
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        language: system
+        entry: poetry run black --quiet .
+        files: \.py$
+      - id: pylint
+        name: pylint
+        language: system
+        entry: poetry run pylint
+        files: \.py$
