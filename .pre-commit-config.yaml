@@ -9,5 +9,5 @@ repos:
       - id: pylint
         name: pylint
         language: system
-        entry: poetry run pylint
+        entry: poetry run pylint --errors-only
         files: \.py$
