@@ -34,7 +34,7 @@ def _on_disconnect(*args, **kwargs) -> None:
 
 PROSUMER_SETTINGS: Final = settings.PROSUMER_CONFIG["settings"]
 SERVER: Final[str] = PROSUMER_SETTINGS["server"]
-PORT: Final[int] = PROSUMER_SETTINGS["mqttPort"]
+PORT: Final = int(PROSUMER_SETTINGS["mqttPort"])
 VP_ADDRESS: Final[str] = PROSUMER_SETTINGS["vpAddress"]
 SHORT_VP_ADDRESS: Final = VP_ADDRESS.split(":")[-1]
 
