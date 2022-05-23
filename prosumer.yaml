@@ -1,0 +1,20 @@
+settings:
+  server: 127.0.0.1
+  mqttPort: 1883
+  vpAddress: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+
+generations:
+  - id: 0x003
+    primaryEnergy: Renewables
+    conversionTechnique: Photo Voltaic
+    installedCapacity: 10.2
+
+storages:
+  - id: 0x002
+    technology: Li-Ion
+    maxCapacity: 20
+    usableCapacity: 10
+
+consumptions:
+  - id: 0x001
+    peakDemand: 9.8
