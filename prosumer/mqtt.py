@@ -1,4 +1,3 @@
-import base64
 from typing import Final
 
 from django.conf import settings
@@ -33,10 +32,10 @@ def _on_disconnect(*args, **kwargs) -> None:
     print(f"mqtt_client::disconnected {args}   {kwargs}")
 
 
-CONFIG: Final = settings.PROSUMER_CONFIG
-SERVER: Final[str] = CONFIG["server"]
-PORT: Final[int] = CONFIG["mqtt_port"]
-VP_ADDRESS: Final[str] = CONFIG["vp_address"]
+PROSUMER_SETTINGS: Final = settings.PROSUMER_CONFIG["settings"]
+SERVER: Final[str] = PROSUMER_SETTINGS["server"]
+PORT: Final[int] = PROSUMER_SETTINGS["mqttPort"]
+VP_ADDRESS: Final[str] = PROSUMER_SETTINGS["vpAddress"]
 SHORT_VP_ADDRESS: Final = VP_ADDRESS.split(":")[-1]
 
 client: Final[Client] = Client(client_id=SHORT_VP_ADDRESS)
