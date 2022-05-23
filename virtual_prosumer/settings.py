@@ -10,10 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
-from typing import Final
-from yaml import SafeLoader, load as loadYaml
-
 from pathlib import Path
+from typing import Final
+
+from virtual_prosumer.config_loader import load_config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -126,5 +126,4 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-with open("prosumer.yaml", "r", encoding="utf-8") as file:
-    PROSUMER_CONFIG: Final[dict[str, any]] = loadYaml(file, Loader=SafeLoader)
+PROSUMER_CONFIG: Final = load_config()
