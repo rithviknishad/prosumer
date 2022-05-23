@@ -11,6 +11,7 @@ djangorestframework = "^3.13.1"
 django-environ = "^0.8.1"
 django-filter = "^21.1"
 paho-mqtt = "^1.6.1"
+PyYAML = "^6.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.13.9"
