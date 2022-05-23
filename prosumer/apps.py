@@ -1,6 +1,7 @@
 from django.apps import AppConfig
+from django.conf import settings
 
-from prosumer.mqtt import update_state
+from prosumer.mqtt import set_states
 
 
 class ProsumerConfig(AppConfig):
@@ -8,4 +9,12 @@ class ProsumerConfig(AppConfig):
     name = "prosumer"
 
     def ready(self) -> None:
-        update_state("isOnline", True)
+        set_states(
+            {
+                "isOnline": True,
+                **{
+                    key: settings.PROSUMER_CONFIG[key]
+                    for key in ["generations", "storages", "consumptions"]
+                },
+            }
+        )
