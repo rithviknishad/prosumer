@@ -8,7 +8,7 @@ from paho.mqtt.client import Client
 def _state_to_mqtt_payload(key: str, value: any):
     return {
         "topic": f"prosumers/{SHORT_VP_ADDRESS}/{key}",
-        "payload": value,
+        "payload": str(value),
         "retain": True,
     }
 
@@ -17,15 +17,15 @@ def prosumer_state_key_to_topic(state_key: str) -> str:
     return f"prosumers/{SHORT_VP_ADDRESS}/{state_key}"
 
 
-def _on_connect(client, userdata, flags, rc) -> None:
-    print(f"mqtt_client::connected with rc=${rc}")
+def _on_connect(_client, _userdata, _flags, return_code) -> None:
+    print(f"mqtt_client::connected with rc=${return_code}")
 
 
-def _on_message(client, userdata, msg) -> None:
+def _on_message(_client, _userdata, msg) -> None:
     print(f"mqtt_client::new_msg: {msg}")
 
 
-def _on_connect_fail(userdata):
+def _on_connect_fail(_userdata):
     print("mqtt_client::connect fail")
 
 
@@ -39,25 +39,28 @@ PORT: Final[int] = CONFIG["mqtt_port"]
 VP_ADDRESS: Final[str] = CONFIG["vp_address"]
 SHORT_VP_ADDRESS: Final = VP_ADDRESS.split(":")[-1]
 
-_client: Final[Client] = Client(
-    client_id=base64.b64encode(VP_ADDRESS.encode("ascii")).decode("ascii")
-)
+client: Final[Client] = Client(client_id=SHORT_VP_ADDRESS)
 
-_client.on_connect = _on_connect
-_client.on_message = _on_message
-_client.on_connect_fail = _on_connect_fail
-_client.on_disconnect = _on_disconnect
+client.on_connect = _on_connect
+client.on_message = _on_message
+client.on_connect_fail = _on_connect_fail
+client.on_disconnect = _on_disconnect
 
-_client.will_set(**_state_to_mqtt_payload(*("isOnline", False)))
+client.will_set(**_state_to_mqtt_payload(*("isOnline", False)))
 
-_client.connect(SERVER, PORT)
-_client.loop_start()
+client.connect(SERVER, PORT)
+client.loop_start()
 
 
-def update_state(state: str, value: any) -> None:
-    _client.publish(**_state_to_mqtt_payload(state, value))
+def set_state(state: str, value: any, parent_state: str | None = None) -> None:
+    state = "/".join([parent_state, state]) if parent_state else state
+    if isinstance(value, list):
+        return set_states({str(k): v for k, v in dict(enumerate(value)).items()}, state)
+    if isinstance(value, dict):
+        return set_states(states=value, parent_state=state)
+    client.publish(**_state_to_mqtt_payload(state, value))
 
 
-def update_states(states: dict[str, any]) -> None:
+def set_states(states: dict[str, any], parent_state: str | None = None) -> None:
     for item in states.items():
-        _client.publish(**_state_to_mqtt_payload(*item))
+        set_state(*item, parent_state=parent_state)
