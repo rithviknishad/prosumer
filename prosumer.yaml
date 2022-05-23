@@ -1,7 +1,7 @@
 settings:
-  server: 127.0.0.1
-  mqttPort: 1883
-  vpAddress: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+  server: ${PROSUMER_MQTT_SERVER}
+  mqttPort: ${PROSUMER_MQTT_PORT}
+  vpAddress: ${PROSUMER_VP_ADDRESS}
 
 generations:
   - id: 0x003
