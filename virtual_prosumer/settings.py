@@ -10,6 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+from typing import Final
+from yaml import SafeLoader, load as loadYaml
+
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -123,9 +126,5 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-PROSUMER_CONFIG = {
-    "server": "127.0.0.1",
-    "mqtt_port": 1883,
-    "vp_address": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
-}
+with open("prosumer.yaml", "r", encoding="utf-8") as file:
+    PROSUMER_CONFIG: Final[dict[str, any]] = loadYaml(file, Loader=SafeLoader)
