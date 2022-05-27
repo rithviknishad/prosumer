@@ -1,3 +1,6 @@
+latitude: ${PROSUMER_LATITUDE}
+longitude: ${PROSUMER_LONGITUDE}
+
 settings:
   server: ${PROSUMER_MQTT_SERVER}
   mqttPort: ${PROSUMER_MQTT_PORT}
@@ -8,13 +11,21 @@ generations:
     primaryEnergy: Renewables
     conversionTechnique: Photo Voltaic
     installedCapacity: 10.2
+    profile: profiles/g0.csv
+
+  - id: 0x004
+    primaryEnergy: Renewables
+    conversionTechnique: Wind
+    installedCapacity: 30
+    profile: profiles/g1.csv
 
 storages:
   - id: 0x002
     technology: Li-Ion
     maxCapacity: 20
-    usableCapacity: 10
+    usableCapacity: 18
 
 consumptions:
   - id: 0x001
     peakDemand: 9.8
+    profile: profiles/c0.csv
