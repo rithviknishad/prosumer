@@ -1,19 +1,6 @@
-from typing import Final
+from typing import Optional
 
-from django.conf import settings
 from paho.mqtt.client import Client
-
-
-def _state_to_mqtt_payload(key: str, value: any):
-    return {
-        "topic": f"prosumers/{SHORT_VP_ADDRESS}/{key}",
-        "payload": str(value),
-        "retain": True,
-    }
-
-
-def prosumer_state_key_to_topic(state_key: str) -> str:
-    return f"prosumers/{SHORT_VP_ADDRESS}/{state_key}"
 
 
 def _on_connect(_client, _userdata, _flags, return_code) -> None:
@@ -32,34 +19,41 @@ def _on_disconnect(*args, **kwargs) -> None:
     print(f"mqtt_client::disconnected {args}   {kwargs}")
 
 
-PROSUMER_SETTINGS: Final = settings.PROSUMER_CONFIG["settings"]
-SERVER: Final[str] = PROSUMER_SETTINGS["server"]
-PORT: Final = int(PROSUMER_SETTINGS["mqttPort"])
-VP_ADDRESS: Final[str] = PROSUMER_SETTINGS["vpAddress"]
-SHORT_VP_ADDRESS: Final = VP_ADDRESS.split(":")[-1]
+class ProsumerMqttClient(Client):
+    "Custom MQTT client for prosumer."
 
-client: Final[Client] = Client(client_id=SHORT_VP_ADDRESS)
+    def __init__(self, vp_address: str, server: str, port: int, *args, **kwargs):
+        self.short_vp_addr = vp_address.split(":")[-1]
+        super().__init__(client_id=self.short_vp_addr, *args, **kwargs)
+        self.on_connect = _on_connect
+        self.on_disconnect = _on_disconnect
+        self.on_message = _on_message
+        self.on_connect_fail = _on_connect_fail
+        self.will_set(**self._state_to_mqtt_payload(*("isOnline", False)))
+        self.connect(server, port)
+        self.loop_start()
 
-client.on_connect = _on_connect
-client.on_message = _on_message
-client.on_connect_fail = _on_connect_fail
-client.on_disconnect = _on_disconnect
+    def _state_to_mqtt_payload(self, state: str, value: any):
+        return {
+            "topic": f"prosumers/{self.short_vp_addr}/{state}",
+            "payload": str(value),
+            "retain": True,
+        }
 
-client.will_set(**_state_to_mqtt_payload(*("isOnline", False)))
+    def set_state(
+        self, state: str, value: any, parent_state: Optional[str] = None
+    ) -> None:
+        state = "/".join([parent_state, state]) if parent_state else state
+        if isinstance(value, list):
+            return self.set_states(
+                {str(k): v for k, v in dict(enumerate(value)).items()}, state
+            )
+        if isinstance(value, dict):
+            return self.set_states(states=value, parent_state=state)
+        self.publish(**self._state_to_mqtt_payload(state, value))
 
-client.connect(SERVER, PORT)
-client.loop_start()
-
-
-def set_state(state: str, value: any, parent_state: str | None = None) -> None:
-    state = "/".join([parent_state, state]) if parent_state else state
-    if isinstance(value, list):
-        return set_states({str(k): v for k, v in dict(enumerate(value)).items()}, state)
-    if isinstance(value, dict):
-        return set_states(states=value, parent_state=state)
-    client.publish(**_state_to_mqtt_payload(state, value))
-
-
-def set_states(states: dict[str, any], parent_state: str | None = None) -> None:
-    for item in states.items():
-        set_state(*item, parent_state=parent_state)
+    def set_states(
+        self, states: dict[str, any], parent_state: str | None = None
+    ) -> None:
+        for item in states.items():
+            self.set_state(*item, parent_state=parent_state)
