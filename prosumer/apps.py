@@ -6,6 +6,10 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from prosumer.mqtt import ProsumerMqttClient
+from prosumer.subsystems import Consumption, Generation, Storage
+from utils.utils import acclimate_dict_for_kwargs
+
+_ = acclimate_dict_for_kwargs
 
 
 class ProsumerConfig(AppConfig):
@@ -13,6 +17,10 @@ class ProsumerConfig(AppConfig):
     name = "prosumer"
 
     mqtt_client: Final[ProsumerMqttClient]
+
+    generations: list[Generation] = []
+    storages: list[Storage] = []
+    consumptions: list[Consumption] = []
 
     @cached_property
     def config(self) -> dict[str, any]:
@@ -28,7 +36,11 @@ class ProsumerConfig(AppConfig):
             server=self.settings["server"],
             port=int(self.settings["mqttPort"]),
         )
-        # self.mqtt_client.
+
+    def initialize_subsystems(self):
+        self.generations = [Generation(_(c)) for c in self.config["generations"]]
+        self.storages = [Storage(_(c)) for c in self.config["storages"]]
+        self.consumptions = [Consumption(_(c)) for c in self.config["consumptions"]]
 
     def ready(self) -> None:
         if os.environ.get("RUN_MAIN") != "true":
@@ -42,3 +54,4 @@ class ProsumerConfig(AppConfig):
                     },
                 }
             )
+            self.initialize_subsystems()
