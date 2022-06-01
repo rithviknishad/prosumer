@@ -43,6 +43,8 @@ class ProsumerMqttClient(Client):
     def set_state(
         self, state: str, value: any, parent_state: Optional[str] = None
     ) -> None:
+        if state.startswith("$"):
+            return
         state = "/".join([parent_state, state]) if parent_state else state
         if isinstance(value, list):
             return self.set_states(
