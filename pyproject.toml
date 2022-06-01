@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "virtual-prosumer"
+name = "prosumer"
 version = "0.1.0"
 description = "A virtual energy prosumer for testing and evaluating the performance of MGEMS Server."
 authors = ["Rithvik Nishad <rithvikn2001@gmail.com>"]
