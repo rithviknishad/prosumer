@@ -2,7 +2,7 @@
 jobs=4
 
 [BASIC]
-good-names=virtual-prosumer
+good-names=prosumer,id
 
 [pre-commit-hook]
 command=custom_pylint
