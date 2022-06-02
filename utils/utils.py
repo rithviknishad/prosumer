@@ -7,9 +7,6 @@ def acclimate_dict_for_kwargs(source: dict[str, any]) -> dict[str, any]:
     }
 
 
-kwargs_climatize = acclimate_dict_for_kwargs
-
-
 class Base:
     def __init__(self, **kwargs) -> None:
         self.__dict__.update(kwargs)
