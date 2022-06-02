@@ -9,8 +9,6 @@ from prosumer.mqtt import ProsumerMqttClient
 from prosumer.subsystems import Consumption, Generation, Storage
 from utils.utils import acclimate_dict_for_kwargs
 
-_ = acclimate_dict_for_kwargs
-
 
 class ProsumerConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
@@ -38,9 +36,15 @@ class ProsumerConfig(AppConfig):
         )
 
     def initialize_subsystems(self):
-        self.generations = [Generation(_(c)) for c in self.config["generations"]]
-        self.storages = [Storage(_(c)) for c in self.config["storages"]]
-        self.consumptions = [Consumption(_(c)) for c in self.config["consumptions"]]
+        def _(config) -> dict:
+            return {
+                "config": acclimate_dict_for_kwargs(config),
+                "states_setter": self.mqtt_client.set_states,
+            }
+
+        self.consumptions = [Consumption(**_(c)) for c in self.config["consumptions"]]
+        self.generations = [Generation(**_(c)) for c in self.config["generations"]]
+        self.storages = [Storage(**_(c)) for c in self.config["storages"]]
 
     def ready(self) -> None:
         if os.environ.get("RUN_MAIN") != "true":
