@@ -1,8 +1,10 @@
+import weakref
+from collections import defaultdict
 from functools import cached_property
 from typing import Callable
 
 
-class StateEntityMixin:
+class StateEntity:
     """
     Mixin that makes the instance a state entity. `states_setter` should be
     set before invoking `set_states`.
@@ -27,3 +29,18 @@ class StateEntityMixin:
             else self.entity_name
         )
         self.states_setter(states=states, parent_state=resolved_pstate)
+
+
+class KeepRefs(object):
+    __refs__ = defaultdict(list)
+
+    def __init__(self):
+        self.__refs__[self.__class__].append(weakref.ref(self))
+        super().__init__()
+
+    @classmethod
+    def get_instances(cls):
+        for inst_ref in cls.__refs__[cls]:
+            inst = inst_ref()
+            if inst is not None:
+                yield inst

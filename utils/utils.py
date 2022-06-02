@@ -10,3 +10,4 @@ def acclimate_dict_for_kwargs(source: dict[str, any]) -> dict[str, any]:
 class Base:
     def __init__(self, **kwargs) -> None:
         self.__dict__.update(kwargs)
+        super().__init__()

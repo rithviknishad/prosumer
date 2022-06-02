@@ -8,9 +8,18 @@ settings:
 
 generations:
   - id: 0x003
-    primaryEnergy: Renewables
-    conversionTechnique: Photo Voltaic
-    installedCapacity: 10.2
+    primary_energy: Renewables
+    conversion_technique: Photo Voltaic
+    installed_capacity: 10.2
+    $profile:
+      source: range_30m
+      r0: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.032, 0.066, 0.077, 0.251, 0.257, 0.235, 0.286, 0.354, 0.502, 0.608, 0.641, 0.644, 0.651, 0.639, 0.617, 0.583, 0.538, 0.481, 0.413, 0.337, 0.251, 0.141, 0.065, 0.012, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+      r1: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.010, 0.100, 0.183, 0.271, 0.354, 0.430, 0.495, 0.550, 0.588, 0.521, 0.640, 0.658, 0.656, 0.643, 0.619, 0.584, 0.520, 0.463, 0.381, 0.173, 0.084, 0.001, 0.007, 0.009, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+
+  - id: 0x004
+    primary_energy: Renewables
+    conversion_technique: Photo Voltaic
+    installed_capacity: 10.2
     $profile:
       source: range_30m
       r0: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.032, 0.066, 0.077, 0.251, 0.257, 0.235, 0.286, 0.354, 0.502, 0.608, 0.641, 0.644, 0.651, 0.639, 0.617, 0.583, 0.538, 0.481, 0.413, 0.337, 0.251, 0.141, 0.065, 0.012, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
@@ -19,12 +28,12 @@ generations:
 storages:
   - id: 0x002
     technology: Li-Ion
-    maxCapacity: 20
-    usableCapacity: 18
+    max_capacity: 20
+    usable_capacity: 18
 
 consumptions:
   - id: 0x001
-    peakDemand: 9.8
+    peak_demand: 9.8
     $profile:
       source: range_30m
       r0: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.032, 0.066, 0.077, 0.251, 0.257, 0.235, 0.286, 0.354, 0.502, 0.608, 0.641, 0.644, 0.651, 0.639, 0.617, 0.583, 0.538, 0.481, 0.413, 0.337, 0.251, 0.141, 0.065, 0.012, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
