@@ -3,20 +3,20 @@ from typing import Optional
 from paho.mqtt.client import Client
 
 
-def _on_connect(_client, _userdata, _flags, return_code) -> None:
-    print(f"mqtt_client::connected with rc=${return_code}")
+def _on_connect(_client, _userdata, _flags, _rc) -> None:
+    print("MQTT Client connected")
 
 
 def _on_message(_client, _userdata, msg) -> None:
-    print(f"mqtt_client::new_msg: {msg}")
+    print(f"MQTT Message Received: {msg}")
 
 
 def _on_connect_fail(_userdata):
-    print("mqtt_client::connect fail")
+    print("MQTT Connect Failed!")
 
 
 def _on_disconnect(*args, **kwargs) -> None:
-    print(f"mqtt_client::disconnected {args}   {kwargs}")
+    print(f"MQTT Client Disconnected! {args} {kwargs}")
 
 
 class ProsumerMqttClient(Client):
