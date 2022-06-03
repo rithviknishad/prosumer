@@ -14,7 +14,7 @@ class SubsystemBase(StateEntityMixin, Base):
     """
 
     auto_start = True
-    run_interval = 1
+    run_interval = 5
 
     config: dict
     states_setter: Callable
