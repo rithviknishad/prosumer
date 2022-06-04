@@ -34,6 +34,8 @@ class ProsumerMqttClient(Client):
         self.loop_start()
 
     def _state_to_mqtt_payload(self, state: str, value: any):
+        if isinstance(value, float):
+            value = round(value, 3)
         return {
             "topic": f"prosumers/{self.short_vp_addr}/{state}",
             "payload": str(value),
