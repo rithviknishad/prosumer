@@ -6,7 +6,12 @@ from django.apps import AppConfig
 from django.conf import settings
 
 from prosumer.mqtt import ProsumerMqttClient
-from prosumer.subsystems import Consumption, Generation, Storage
+from prosumer.subsystems import (
+    Consumption,
+    Generation,
+    InterconnectedSubsystem,
+    Storage,
+)
 from utils.utils import acclimate_dict_for_kwargs
 
 
@@ -16,9 +21,7 @@ class ProsumerConfig(AppConfig):
 
     mqtt_client: Final[ProsumerMqttClient]
 
-    generations: list[Generation] = []
-    storages: list[Storage] = []
-    consumptions: list[Consumption] = []
+    master_subsystem: InterconnectedSubsystem
 
     @cached_property
     def config(self) -> dict[str, any]:
@@ -36,26 +39,29 @@ class ProsumerConfig(AppConfig):
         )
 
     def initialize_subsystems(self):
-        def _(config) -> dict:
-            return {
-                "config": acclimate_dict_for_kwargs(config),
-                "states_setter": self.mqtt_client.set_states,
-            }
-
-        self.consumptions = [Consumption(**_(c)) for c in self.config["consumptions"]]
-        self.generations = [Generation(**_(c)) for c in self.config["generations"]]
-        self.storages = [Storage(**_(c)) for c in self.config["storages"]]
+        _ = acclimate_dict_for_kwargs
+        consumptions = [Consumption(**_(c)) for c in self.config["consumptions"]]
+        generations = [Generation(**_(c)) for c in self.config["generations"]]
+        storages = [Storage(**_(c)) for c in self.config["storages"]]
+        self.master_subsystem = InterconnectedSubsystem(
+            consumptions=consumptions,
+            generations=generations,
+            storages=storages,
+            set_states=self.mqtt_client.set_states,
+            id=-1,
+        )
 
     def ready(self) -> None:
         if os.environ.get("RUN_MAIN") != "true":
-            self.connect_to_grid()
-            self.mqtt_client.set_states(
-                {
-                    "isOnline": True,
-                    **{
-                        key: settings.PROSUMER_CONFIG[key]
-                        for key in ["generations", "storages", "consumptions"]
-                    },
-                }
-            )
-            self.initialize_subsystems()
+            return
+        self.connect_to_grid()
+        self.mqtt_client.set_states(
+            {
+                "isOnline": True,
+                **{
+                    key: settings.PROSUMER_CONFIG[key]
+                    for key in ["generations", "storages", "consumptions"]
+                },
+            }
+        )
+        self.initialize_subsystems()

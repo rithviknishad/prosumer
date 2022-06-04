@@ -2,6 +2,10 @@ from functools import cached_property
 from typing import Callable
 
 
+def states_setter(states_provider):
+    return lambda self: self.set_states(states_provider(self))
+
+
 class StateEntityMixin:
     """
     Mixin that makes the instance a state entity. `states_setter` should be
