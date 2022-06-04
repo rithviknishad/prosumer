@@ -1,7 +1,8 @@
 from datetime import datetime
-from functools import cached_property
+from functools import cached_property, reduce
 from random import uniform
-from typing import Callable, Final
+from typing import Callable, Final, Optional
+from prosumer.mixins import SupportsExport
 
 from utils.decorators import setInterval
 from utils.interpolate import Curves, remap
@@ -22,6 +23,7 @@ class SubsystemBase(Base):
     def __init__(self, **kwargs) -> None:
         self.id_ = str(kwargs.pop("id"))
         self.auto_start = bool(kwargs.pop("auto_start", SubsystemBase.auto_start))
+        self.asset_value: Optional[float] = kwargs.pop("asset_value", None)
         self.runner: any = None
 
         super().__init__(**kwargs)
@@ -106,7 +108,7 @@ class SubsystemWithProfile(SubsystemBase):
         self.power = self.get_value()
 
 
-class Generation(SubsystemWithProfile):
+class Generation(SupportsExport, SubsystemWithProfile):
     profile_base_multiplier_field_name = "installed_capacity"
 
     def __init__(self, **kwargs) -> None:
@@ -124,7 +126,7 @@ class Consumption(SubsystemWithProfile):
         super().__init__(**kwargs)
 
 
-class Storage(SubsystemBase):
+class Storage(SupportsExport, SubsystemBase):
     def __init__(self, **kwargs) -> None:
         self.technology = str(kwargs.get("technology"))
         self.max_capacity = float(kwargs.get("max_capacity"))
@@ -141,7 +143,7 @@ class Storage(SubsystemBase):
         pass
 
 
-class InterconnectedSubsystem(SubsystemBase):
+class InterconnectedSubsystem(SupportsExport, SubsystemBase):
 
     subsystem_reporting_enabled: Final = True
 
@@ -161,23 +163,40 @@ class InterconnectedSubsystem(SubsystemBase):
         self.total_consumption = 0.0
         self.total_generation = 0.0
         self.subsystem_reporting_enabled = subsystem_reporting
-        super().__init__(**kwargs)
+        unit_export_price = (
+            self.generations_weighted_unit_export_price
+            + self.storages_weighted_unit_export_price
+        )
+        super().__init__(can_export=True, unit_export_price=unit_export_price, **kwargs)
+
+    @cached_property
+    def generations_weighted_unit_export_price(self):
+        installed_capacity, wavg_num = 0, 0
+        for sys in (sys for sys in self.generations if sys.export_allowed):
+            installed_capacity += sys.installed_capacity
+            wavg_num += sys.installed_capacity * sys.unit_export_price
+        return wavg_num / installed_capacity
+
+    @cached_property
+    def storages_weighted_unit_export_price(self):
+        # TODO: [Storage] Not Implemented
+        return 0
 
     def get_generation_states(self) -> dict[str, any]:
         result = {}
         total_power = 0.0
-        for gen in self.generations:
-            total_power += gen.power
-            result.update({f"{gen.id_}/power": gen.power})
+        for sys in self.generations:
+            total_power += sys.power
+            result.update({f"{sys.id_}/power": sys.power})
         self.total_generation = total_power
         return result
 
     def get_consumption_states(self) -> dict[str, any]:
         result = {}
         total_power = 0.0
-        for gen in self.consumptions:
-            total_power += gen.power
-            result.update({f"{gen.id_}/power": gen.power})
+        for sys in self.consumptions:
+            total_power += sys.power
+            result.update({f"{sys.id_}/power": sys.power})
         self.total_consumption = total_power
         return result
 
@@ -197,7 +216,7 @@ class InterconnectedSubsystem(SubsystemBase):
         return ProsumerStatus.SELF_SUSTAIN
 
     @property
-    def export_power(self):
+    def net_export_power(self):
         return self.total_generation - self.total_consumption
 
     @states_setter
@@ -219,8 +238,9 @@ class InterconnectedSubsystem(SubsystemBase):
             generation=self.total_generation,
             consumption=self.total_consumption,
             self_consumption=self.self_consumption,
-            net_export=self.export_power,
+            net_export=self.net_export_power,
             status=self.import_export_status.value,
+            export_price=self.unit_export_price,
             last_updated_at=datetime.now(),
         )
 
