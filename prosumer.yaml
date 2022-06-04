@@ -1,31 +1,51 @@
+# Prosumer's Geographic Location
 latitude: ${PROSUMER_LATITUDE}
 longitude: ${PROSUMER_LONGITUDE}
 
+# Settings that defines various connection parameters that allows communication to Vaidyuti EMS.
 settings:
+
+  # The MQTT Server Address where the data is aggregated by telegraf.
   server: ${PROSUMER_MQTT_SERVER}
+
+  # The MQTT Port, defaults to 1883.
   mqttPort: ${PROSUMER_MQTT_PORT}
+
+  # The Vaidyuti Protocol Address that identifies the Prosumer.
   vpAddress: ${PROSUMER_VP_ADDRESS}
 
+# Generation Systems that are part of the prosumer.
 generations:
-  - id: 0x003
-    primary_energy: Renewables
-    conversion_technique: Photo Voltaic
-    installed_capacity: 10.2
-    $profile:
+
+  - id: 0x003                             # Unique ID that references the system.
+    primary_energy: Renewables            # The Primary Energy category of this system.
+    conversion_technique: Photo Voltaic   # The conversion technique used.
+    installed_capacity: 10.2              # The installed capacity of the system in kW. Used as per-unit base_kW for the profile.
+    $profile:                             # Configuration for mocking the generation profile.
       source: range_30m
+      # r0 and r1 values are for 24 hours with 30 min interval.
+      # Each value is in per-unit, with base_kW defined by installed_capacity.
       r0: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.032, 0.066, 0.077, 0.251, 0.257, 0.235, 0.286, 0.354, 0.502, 0.608, 0.641, 0.644, 0.651, 0.639, 0.617, 0.583, 0.538, 0.481, 0.413, 0.337, 0.251, 0.141, 0.065, 0.012, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
       r1: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.010, 0.100, 0.183, 0.271, 0.354, 0.430, 0.495, 0.550, 0.588, 0.521, 0.640, 0.658, 0.656, 0.643, 0.619, 0.584, 0.520, 0.463, 0.381, 0.173, 0.084, 0.001, 0.007, 0.009, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
 
-storages:
-  - id: 0x002
-    technology: Li-Ion
-    max_capacity: 20
-    usable_capacity: 18
-
+# Consumption Systems that are part of the prosumer.
 consumptions:
-  - id: 0x001
-    peak_demand: 9.8
-    $profile:
+  - id: 0x001                             # Unique ID that references the system.
+    peak_demand: 9.8                      # The peak demand of the consumption system in kW. Used as per-unit base_kW for the profile.
+    $profile:                             # Configuration for mocking the generation profile.
       source: range_30m
+      # r0 and r1 values are for 24 hours with 30 min interval.
+      # Each value is in per-unit, with base_kW defined by peak_demand.
       r0: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.032, 0.066, 0.077, 0.251, 0.257, 0.235, 0.286, 0.354, 0.502, 0.608, 0.641, 0.644, 0.651, 0.639, 0.617, 0.583, 0.538, 0.481, 0.413, 0.337, 0.251, 0.141, 0.065, 0.012, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
       r1: [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.010, 0.100, 0.183, 0.271, 0.354, 0.430, 0.495, 0.550, 0.588, 0.521, 0.640, 0.658, 0.656, 0.643, 0.619, 0.584, 0.520, 0.463, 0.381, 0.173, 0.084, 0.001, 0.007, 0.009, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+
+# Storage Systems that are part of the prosumer.
+storages:
+  - id: 0x002                             # Unique ID that references the system.
+    technology: Li-Ion                    # The energy storage technology used by the system.
+    max_capacity: 20                      # Installed capacity of the storage system in kW.
+    usable_capacity: 18                   # The usable capacity of the storage system in kW.
+    max_charge_rate: 1                    # The maximum power in kW that can be ingested into the storage system.
+    max_discharge_rate: 10000             # The maximum power in kW that can be drawn from the storage system.
+    charge_efficiency: 0.90               # Charging efficiency in base-1 %.
+    discharge_efficiency: 0.92            # Discharging efficiency in base-1 %.
