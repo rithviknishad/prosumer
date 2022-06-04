@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from functools import cached_property
 from random import uniform
-from typing import Callable, Final, Optional
+from typing import Callable, Final
 from prosumer.enums import ProsumerStatus
 from utils.utils import Base
 from utils.decorators import setInterval
@@ -127,6 +127,12 @@ class Storage(SubsystemBase):
         self.technology = str(kwargs.get("technology"))
         self.max_capacity = float(kwargs.get("max_capacity"))
         self.usable_capacity = float(kwargs.get("usable_capacity"))
+        self.max_charge_rate = float(kwargs.get("max_charge_rate"))
+        self.max_discharge_rate = float(
+            kwargs.get("max_discharge_rate", self.max_charge_rate)
+        )
+        self.charge_efficiency = float(kwargs.get("charge_efficiency", 0.9))
+        self.discharge_efficiency = float(kwargs.get("discharge_efficiency", 0.9))
         super().__init__(**kwargs)
 
     def on_run(self):
