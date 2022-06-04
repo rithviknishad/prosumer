@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import cached_property
 from random import uniform
-from typing import Callable, Final
+from typing import Callable, Final, Optional
+from prosumer.enums import ProsumerStatus
 from utils.utils import Base
 from utils.decorators import setInterval
 from utils.mixins import states_setter
@@ -133,20 +134,86 @@ class Storage(SubsystemBase):
 
 
 class InterconnectedSubsystem(SubsystemBase):
+
+    subsystem_reporting_enabled: Final = True
+
     def __init__(
         self,
         consumptions: list[Consumption],
         generations: list[Generation],
         storages: list[Storage],
         set_states: Callable,
+        subsystem_reporting=subsystem_reporting_enabled,
         **kwargs,
     ) -> None:
         self.consumptions = consumptions
         self.generations = generations
         self.storages = storages
         self.set_states = set_states
+        self.total_consumption = 0.0
+        self.total_generation = 0.0
+        self.subsystem_reporting_enabled = subsystem_reporting
         super().__init__(**kwargs)
+
+    def get_generation_states(self) -> dict[str, any]:
+        result = {}
+        total_power = 0.0
+        for gen in self.generations:
+            total_power += gen.power
+            result.update({f"{gen.id_}/power": gen.power})
+        self.total_generation = total_power
+        return result
+
+    def get_consumption_states(self) -> dict[str, any]:
+        result = {}
+        total_power = 0.0
+        for gen in self.consumptions:
+            total_power += gen.power
+            result.update({f"{gen.id_}/power": gen.power})
+        self.total_consumption = total_power
+        return result
+
+    def get_storage_states(self) -> dict[str, any]:
+        return {}
+
+    @property
+    def self_consumption(self):
+        return min(self.total_generation, self.total_consumption)
+
+    @property
+    def import_export_status(self):
+        if self.self_consumption < self.total_generation:
+            return ProsumerStatus.EXPORT
+        if self.self_consumption < self.total_consumption:
+            return ProsumerStatus.IMPORT
+        return ProsumerStatus.SELF_SUSTAIN
+
+    @property
+    def export_power(self):
+        return self.total_generation - self.total_consumption
 
     @states_setter
     def on_run(self) -> dict[str, any]:
-        return {"power": datetime.now()}
+        generation_states = self.get_generation_states()
+        consumption_states = self.get_consumption_states()
+        # TODO: update self.total_consumption with storage charge rate if charging
+
+        states = {}
+
+        if self.subsystem_reporting_enabled:
+            states.update(
+                generations=generation_states,
+                consumptions=consumption_states,
+                # TODO: include storage system
+            )
+
+        states.update(
+            generation=self.total_generation,
+            consumption=self.total_consumption,
+            self_consumption=self.self_consumption,
+            net_export=self.export_power,
+            status=self.import_export_status.value,
+            last_updated_at=datetime.now(),
+        )
+
+        return states
