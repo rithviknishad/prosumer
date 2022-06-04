@@ -4,6 +4,7 @@ from typing import Final
 
 from django.apps import AppConfig
 from django.conf import settings
+from utils.utils import acclimate_dict_for_kwargs
 
 from prosumer.mqtt import ProsumerMqttClient
 from prosumer.subsystems import (
@@ -12,7 +13,6 @@ from prosumer.subsystems import (
     InterconnectedSubsystem,
     Storage,
 )
-from utils.utils import acclimate_dict_for_kwargs
 
 
 class ProsumerConfig(AppConfig):
