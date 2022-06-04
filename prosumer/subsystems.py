@@ -4,31 +4,25 @@ from random import uniform
 from typing import Callable, Final
 from utils.utils import Base
 from utils.decorators import setInterval
-from utils.mixins import StateEntityMixin
+from utils.mixins import states_setter
 from utils.interpolate import Curves, remap
 
 
-class SubsystemBase(StateEntityMixin, Base):
+class SubsystemBase(Base):
     """
     Base class for a subsystem.
     """
 
+    run_interval = 1
     auto_start = True
-    run_interval = 5
-
-    config: dict
-    states_setter: Callable
-
-    @cached_property
-    def entity_name(self):
-        """
-        The plural name of the entity with subsystem id.
-        """
-        return f"{super().entity_name}/{self.config['id']}"
 
     def __init__(self, **kwargs) -> None:
-        super().__init__(**kwargs)
+        self.id_ = str(kwargs.pop("id"))
+        self.auto_start = bool(kwargs.pop("auto_start", SubsystemBase.auto_start))
         self.runner: any = None
+
+        super().__init__(**kwargs)
+
         if self.auto_start:
             self.start()
 
@@ -68,10 +62,11 @@ _RANGE_30M: Final[int] = 30 * 60
 class SubsystemWithProfile(SubsystemBase):
 
     profile_interval: int
-    profile_base_multiplier: float
-    profile_multiplier_config_name: str
+    profile_base_multiplier_field_name: str
 
     def __init__(self, **kwargs) -> None:
+        self.profile: dict = kwargs.pop("profile")
+        self.power = 0.0
         super().__init__(**kwargs)
         self.compiled_profile = self.generate_profile()
 
@@ -80,16 +75,14 @@ class SubsystemWithProfile(SubsystemBase):
         Attempts to parse profile from `self.config` and generates profile
         between `r0` and `r1` bounds for `7 days`
         """
-        profile, result = self.config["profile"], []
-        if profile["source"] == "range_30m":
-            self.profile_base_multiplier = float(
-                self.config[self.profile_multiplier_config_name]
+        if self.profile["source"] == "range_30m":
+            base_multiplier = float(
+                getattr(self, self.profile_base_multiplier_field_name)
             )
             self.profile_interval = _RANGE_30M
-            p_bounds = zip(profile["r0"], profile["r1"])
-            for _ in range(7):
-                result += [uniform(*i) for i in p_bounds]
-        return result
+            p_bounds = zip(self.profile["r0"] * 7, self.profile["r1"] * 7)
+            return [base_multiplier * uniform(*i) for i in p_bounds]
+        raise NotImplementedError(f"{self.profile['source']} not supported")
 
     @cached_property
     def date_started_at(self):
@@ -104,26 +97,56 @@ class SubsystemWithProfile(SubsystemBase):
         interop_x = delta.seconds / self.profile_interval % 1
         lower, upper = profile[lower_idx], profile[lower_idx + 1]
         curve = Curves.sine if upper > lower else Curves.isine
-        return (
-            remap(curve(interop_x), 0, 1, lower, upper) * self.profile_base_multiplier
-        )
+        return remap(curve(interop_x), 0, 1, lower, upper)
 
     def on_run(self):
-        self.set_states(
-            {
-                "power": self.get_value(),
-            }
-        )
+        self.power = self.get_value()
 
 
 class Generation(SubsystemWithProfile):
-    profile_multiplier_config_name = "installedCapacity"
+    profile_base_multiplier_field_name = "installed_capacity"
+
+    def __init__(self, **kwargs) -> None:
+        self.primary_energy = str(kwargs.get("primary_energy"))
+        self.conversion_technique = str(kwargs.get("conversion_technique"))
+        self.installed_capacity = float(kwargs.get("installed_capacity"))
+        super().__init__(**kwargs)
 
 
 class Consumption(SubsystemWithProfile):
-    profile_multiplier_config_name = "peakDemand"
+    profile_base_multiplier_field_name = "peak_demand"
+
+    def __init__(self, **kwargs) -> None:
+        self.peak_demand = float(kwargs.get("peak_demand"))
+        super().__init__(**kwargs)
 
 
 class Storage(SubsystemBase):
+    def __init__(self, **kwargs) -> None:
+        self.technology = str(kwargs.get("technology"))
+        self.max_capacity = float(kwargs.get("max_capacity"))
+        self.usable_capacity = float(kwargs.get("usable_capacity"))
+        super().__init__(**kwargs)
+
     def on_run(self):
         pass
+
+
+class InterconnectedSubsystem(SubsystemBase):
+    def __init__(
+        self,
+        consumptions: list[Consumption],
+        generations: list[Generation],
+        storages: list[Storage],
+        set_states: Callable,
+        **kwargs,
+    ) -> None:
+        self.consumptions = consumptions
+        self.generations = generations
+        self.storages = storages
+        self.set_states = set_states
+        super().__init__(**kwargs)
+
+    @states_setter
+    def on_run(self) -> dict[str, any]:
+        return {"power": datetime.now()}
