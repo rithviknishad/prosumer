@@ -14,6 +14,10 @@ settings:
   # The Vaidyuti Protocol Address that identifies the Prosumer.
   vpAddress: ${PROSUMER_VP_ADDRESS}
 
+# base_asset_value: 0                     # [Optional] The base asset value that's added on top of individual subsystems asset value in local currency. Defaults to 0.
+payback_period: 90                        # [Optional] The target payback period in months.
+# base_unit_export_price: 0               # [Optional] The base unit export price that is applied on top of all other systems individual export price.
+
 # Generation Systems that are part of the prosumer.
 generations:
 
@@ -21,6 +25,8 @@ generations:
     primary_energy: Renewables            # The Primary Energy category of this system.
     conversion_technique: Photo Voltaic   # The conversion technique used.
     installed_capacity: 10.2              # The installed capacity of the system in kW. Used as per-unit base_kW for the profile.
+    asset_value: 500000                   # [Optional] The value of the system at the time of installation in local currency.
+    unit_export_price: 7                  # The unit export price for the energy exported from this generation system.
     $profile:                             # Configuration for mocking the generation profile.
       source: range_30m
       # r0 and r1 values are for 24 hours with 30 min interval.
@@ -32,6 +38,7 @@ generations:
 consumptions:
   - id: 0x001                             # Unique ID that references the system.
     peak_demand: 9.8                      # The peak demand of the consumption system in kW. Used as per-unit base_kW for the profile.
+    asset_value: 500000                   # [Optional] The value of the system at the time of installation in local currency.
     $profile:                             # Configuration for mocking the generation profile.
       source: range_30m
       # r0 and r1 values are for 24 hours with 30 min interval.
@@ -49,3 +56,4 @@ storages:
     max_discharge_rate: 10000             # The maximum power in kW that can be drawn from the storage system.
     charge_efficiency: 0.90               # Charging efficiency in base-1 %.
     discharge_efficiency: 0.92            # Discharging efficiency in base-1 %.
+    unit_export_price: 10                 # The unit export price for energy exported from this storage system.
