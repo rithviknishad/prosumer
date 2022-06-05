@@ -100,7 +100,15 @@ class SubsystemBase(Base):
         return field_values
 
     def get_states(self) -> dict[str, any]:
-        raise NotImplementedError()
+        states = {}
+        for field in self.timeseries_fields:
+            states.update(
+                {
+                    field: self.__dict__[field],
+                    **self._get_timeseries_field_values(field),
+                }
+            )
+        return states
 
 
 # Predefined ranges
@@ -161,11 +169,6 @@ class Generation(SupportsExport, SubsystemWithProfile):
         self.register_timeseries_fields("power")
         super().__init__(**kwargs)
 
-    def get_states(self) -> dict[str, any]:
-        return {
-            "power": self.power,
-        }
-
 
 class Consumption(SubsystemWithProfile):
     profile_base_multiplier_field_name = "peak_demand"
@@ -174,11 +177,6 @@ class Consumption(SubsystemWithProfile):
         self.peak_demand = float(kwargs.get("peak_demand"))
         self.register_timeseries_fields("power")
         super().__init__(**kwargs)
-
-    def get_states(self) -> dict[str, any]:
-        return {
-            "power": self.power,
-        }
 
 
 class Storage(SupportsExport, SubsystemBase):
