@@ -73,6 +73,20 @@ class SubsystemBase(Base):
                 if key not in self.__dict__.keys():
                     setattr(self, key, [])
 
+    def update_timeseries_fields(self):
+        self._ensure_timeseries_samples_fields_initialized()
+        for period in self.moving_avg_periods:
+            for field in self.timeseries_fields:
+                key = f"{field}_{period}m"
+                present_value = getattr(self, field)
+                max_samples = period * 60 // self.run_interval
+                samples = list(getattr(self, key + "_samples"))
+                samples.insert(0, present_value)
+                if len(samples) == max_samples:
+                    samples.pop()
+                setattr(self, key + "_samples", samples)
+                setattr(self, key, sum(samples) / len(samples))
+
     def get_states(self) -> dict[str, any]:
         raise NotImplementedError()
 
