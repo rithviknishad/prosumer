@@ -90,6 +90,15 @@ class SubsystemBase(Base):
     def register_timeseries_fields(self, *args):
         self.timeseries_fields += tuple([*args])
 
+    def _get_timeseries_field_values(self, field: str):
+        if field not in self.timeseries_fields:
+            raise KeyError(field)
+        field_values = {}
+        for period in self.moving_avg_periods:
+            key = f"{field}_{period}m"
+            field_values.update({key: getattr(self, key)})
+        return field_values
+
     def get_states(self) -> dict[str, any]:
         raise NotImplementedError()
 
