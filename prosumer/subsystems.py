@@ -58,6 +58,7 @@ class SubsystemBase(Base):
         subsystem is running.
         """
         self.on_run()
+        self.update_timeseries_fields()
 
     def on_run(self):
         raise NotImplementedError("run")
