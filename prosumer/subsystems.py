@@ -2,7 +2,6 @@ from datetime import datetime
 from functools import cached_property, reduce
 from random import uniform
 from typing import Callable, Final, Optional
-from prosumer.mixins import SupportsExport
 
 from utils.decorators import setInterval
 from utils.interpolate import Curves, remap
@@ -10,6 +9,7 @@ from utils.mixins import states_setter
 from utils.utils import Base
 
 from prosumer.enums import ProsumerStatus
+from prosumer.mixins import SupportsExport
 
 
 class SubsystemBase(Base):
@@ -157,16 +157,13 @@ class Storage(SupportsExport, SubsystemBase):
 
 
 class InterconnectedSubsystem(SupportsExport, SubsystemBase):
-
-    subsystem_reporting_enabled: Final = True
-
     def __init__(
         self,
         consumptions: list[Consumption],
         generations: list[Generation],
         storages: list[Storage],
         set_states: Callable,
-        subsystem_reporting=subsystem_reporting_enabled,
+        subsystem_reporting=True,
         **kwargs,
     ) -> None:
         self.consumptions = consumptions
@@ -175,7 +172,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         self.set_states = set_states
         self.total_consumption = 0.0
         self.total_generation = 0.0
-        self.subsystem_reporting_enabled = subsystem_reporting
+        self.subsystem_reporting = subsystem_reporting
         unit_export_price = (
             self.generations_weighted_unit_export_price
             + self.storages_weighted_unit_export_price
@@ -185,7 +182,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
     @cached_property
     def generations_weighted_unit_export_price(self):
         installed_capacity, wavg_num = 0, 0
-        for sys in (sys for sys in self.generations if sys.export_allowed):
+        for sys in filter(lambda x: x.export_allowed, self.generations):
             installed_capacity += sys.installed_capacity
             wavg_num += sys.installed_capacity * sys.unit_export_price
         return wavg_num / installed_capacity
@@ -236,7 +233,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         # TODO: update self.total_consumption with storage charge rate if charging
 
         states = {}
-        if self.subsystem_reporting_enabled:
+        if self.subsystem_reporting:
             states.update(
                 generations=generation_states,
                 consumptions=consumption_states,
