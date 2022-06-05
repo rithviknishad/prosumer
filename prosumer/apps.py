@@ -39,15 +39,31 @@ class ProsumerConfig(AppConfig):
         )
 
     def initialize_subsystems(self):
-        _ = acclimate_dict_for_kwargs
-        consumptions = [Consumption(**_(c)) for c in self.config["consumptions"]]
-        generations = [Generation(**_(c)) for c in self.config["generations"]]
-        storages = [Storage(**_(c)) for c in self.config["storages"]]
+        moving_avg_periods = self.config.get("moving_avg_periods", [])
+        subsystem_reporting = self.config.get("subsystem_reporting", True)
+        commons = {
+            "moving_avg_periods": moving_avg_periods,
+        }
+        acclimate = acclimate_dict_for_kwargs
+        consumptions = [
+            Consumption(**commons, **acclimate(config))
+            for config in self.config.get("consumptions", [])
+        ]
+        generations = [
+            Generation(**commons, **acclimate(config))
+            for config in self.config.get("generations", [])
+        ]
+        storages = [
+            Storage(**commons, **acclimate(config))
+            for config in self.config.get("storages", [])
+        ]
         self.master_subsystem = InterconnectedSubsystem(
+            **commons,
             consumptions=consumptions,
             generations=generations,
             storages=storages,
             set_states=self.mqtt_client.set_states,
+            subsystem_reporting=subsystem_reporting,
             id=-1,
         )
 
@@ -60,7 +76,13 @@ class ProsumerConfig(AppConfig):
                 "isOnline": True,
                 **{
                     key: settings.PROSUMER_CONFIG[key]
-                    for key in ["generations", "storages", "consumptions"]
+                    for key in [
+                        "generations",
+                        "storages",
+                        "consumptions",
+                        "location",
+                        "moving_avg_periods",
+                    ]
                 },
             }
         )
