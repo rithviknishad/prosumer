@@ -63,6 +63,16 @@ class SubsystemBase(Base):
     def on_run(self):
         raise NotImplementedError("run")
 
+    def _ensure_timeseries_samples_fields_initialized(self):
+        # Initialize if does not exists...
+        # TODO: improve this checking logic...
+        # TODO: This heavy one time operation is being run unnecessarily every run_interval!
+        for period in self.moving_avg_periods:
+            for field in self.timeseries_fields:
+                key = f"{field}_{period}m_samples"
+                if key not in self.__dict__.keys():
+                    setattr(self, key, [])
+
     def get_states(self) -> dict[str, any]:
         raise NotImplementedError()
 
