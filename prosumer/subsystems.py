@@ -87,6 +87,9 @@ class SubsystemBase(Base):
                 setattr(self, key + "_samples", samples)
                 setattr(self, key, sum(samples) / len(samples))
 
+    def register_timeseries_fields(self, *args):
+        self.timeseries_fields += tuple([*args])
+
     def get_states(self) -> dict[str, any]:
         raise NotImplementedError()
 
