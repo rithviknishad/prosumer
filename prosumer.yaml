@@ -3,6 +3,12 @@ location: ${PROSUMER_LOCATION}
 
 moving_avg_periods: [1, 5, 15, 30, 60]
 
+# Which class of subsystems should be allowed for individual subsystem state reporting.
+subsystem_reporting:
+  - generation                            # Subsystem Reporting for Generation systems is enabled.
+  - storage                               # Subsystem Reporting for Storage systems is enabled.
+  # - consumption                         # Subsystem Reporting for Consumption systems is disabled.
+
 # Settings that defines various connection parameters that allows communication to Vaidyuti EMS.
 settings:
 
