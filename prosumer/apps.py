@@ -40,7 +40,7 @@ class ProsumerConfig(AppConfig):
 
     def initialize_subsystems(self):
         moving_avg_periods = self.config.get("moving_avg_periods", [])
-        subsystem_reporting = self.config.get("subsystem_reporting", True)
+        subsystem_reporting = tuple(self.config.get("subsystem_reporting", []))
         commons = {
             "moving_avg_periods": moving_avg_periods,
         }
