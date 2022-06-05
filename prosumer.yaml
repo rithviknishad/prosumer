@@ -1,6 +1,7 @@
 # Prosumer's Geographic Location
-latitude: ${PROSUMER_LATITUDE}
-longitude: ${PROSUMER_LONGITUDE}
+location: ${PROSUMER_LOCATION}
+
+moving_avg_periods: [1, 5, 15, 30, 60]
 
 # Settings that defines various connection parameters that allows communication to Vaidyuti EMS.
 settings:
