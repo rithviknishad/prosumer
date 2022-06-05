@@ -149,6 +149,7 @@ class Generation(SupportsExport, SubsystemWithProfile):
         self.primary_energy = str(kwargs.get("primary_energy"))
         self.conversion_technique = str(kwargs.get("conversion_technique"))
         self.installed_capacity = float(kwargs.get("installed_capacity"))
+        self.register_timeseries_fields("power")
         super().__init__(**kwargs)
 
     def get_states(self) -> dict[str, any]:
@@ -162,6 +163,7 @@ class Consumption(SubsystemWithProfile):
 
     def __init__(self, **kwargs) -> None:
         self.peak_demand = float(kwargs.get("peak_demand"))
+        self.register_timeseries_fields("power")
         super().__init__(**kwargs)
 
     def get_states(self) -> dict[str, any]:
