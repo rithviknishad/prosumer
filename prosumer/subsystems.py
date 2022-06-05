@@ -203,7 +203,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         generations: list[Generation],
         storages: list[Storage],
         set_states: Callable,
-        subsystem_reporting=True,
+        subsystem_reporting: tuple[str],
         **kwargs,
     ) -> None:
         self.consumptions = consumptions
@@ -273,12 +273,13 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         # TODO: update self.total_consumption with storage charge rate if charging
 
         states = {}
-        if self.subsystem_reporting:
-            states.update(
-                generations=generation_states,
-                consumptions=consumption_states,
-                # TODO: include storage system
-            )
+
+        if "generation" in self.subsystem_reporting:
+            states.update(generations=generation_states)
+        if "consumption" in self.subsystem_reporting:
+            states.update(consumptions=consumption_states)
+        # TODO: include storage system
+
         states.update(
             generation=self.total_generation,
             consumption=self.total_consumption,
