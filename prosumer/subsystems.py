@@ -19,12 +19,15 @@ class SubsystemBase(Base):
 
     run_interval = 1
     auto_start = True
+    timeseries_fields: tuple[str] = ()
+    moving_avg_periods: tuple[int] = ()
 
     def __init__(self, **kwargs) -> None:
         self.id_ = str(kwargs.pop("id"))
         self.auto_start = bool(kwargs.pop("auto_start", SubsystemBase.auto_start))
         self.asset_value: Optional[float] = kwargs.pop("asset_value", None)
         self.runner: any = None
+        self.moving_avg_periods = tuple(kwargs.pop("moving_avg_periods", []))
 
         super().__init__(**kwargs)
 
