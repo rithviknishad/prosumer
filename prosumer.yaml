@@ -26,7 +26,7 @@ generations:
     conversion_technique: Photo Voltaic   # The conversion technique used.
     installed_capacity: 10.2              # The installed capacity of the system in kW. Used as per-unit base_kW for the profile.
     asset_value: 500000                   # [Optional] The value of the system at the time of installation in local currency.
-    unit_export_price: 7                  # The unit export price for the energy exported from this generation system.
+    unit_export_price: 5                  # The unit export price for the energy exported from this generation system.
     $profile:                             # Configuration for mocking the generation profile.
       source: range_30m
       # r0 and r1 values are for 24 hours with 30 min interval.
@@ -37,7 +37,7 @@ generations:
 # Consumption Systems that are part of the prosumer.
 consumptions:
   - id: 0x001                             # Unique ID that references the system.
-    peak_demand: 9.8                      # The peak demand of the consumption system in kW. Used as per-unit base_kW for the profile.
+    peak_demand: 7                        # The peak demand of the consumption system in kW. Used as per-unit base_kW for the profile.
     asset_value: 500000                   # [Optional] The value of the system at the time of installation in local currency.
     $profile:                             # Configuration for mocking the generation profile.
       source: range_30m

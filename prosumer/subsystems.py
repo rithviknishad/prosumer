@@ -59,6 +59,9 @@ class SubsystemBase(Base):
     def on_run(self):
         raise NotImplementedError("run")
 
+    def get_states(self) -> dict[str, any]:
+        raise NotImplementedError()
+
 
 # Predefined ranges
 _RANGE_30M: Final[int] = 30 * 60
@@ -117,6 +120,11 @@ class Generation(SupportsExport, SubsystemWithProfile):
         self.installed_capacity = float(kwargs.get("installed_capacity"))
         super().__init__(**kwargs)
 
+    def get_states(self) -> dict[str, any]:
+        return {
+            "power": self.power,
+        }
+
 
 class Consumption(SubsystemWithProfile):
     profile_base_multiplier_field_name = "peak_demand"
@@ -124,6 +132,11 @@ class Consumption(SubsystemWithProfile):
     def __init__(self, **kwargs) -> None:
         self.peak_demand = float(kwargs.get("peak_demand"))
         super().__init__(**kwargs)
+
+    def get_states(self) -> dict[str, any]:
+        return {
+            "power": self.power,
+        }
 
 
 class Storage(SupportsExport, SubsystemBase):
@@ -182,26 +195,23 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         # TODO: [Storage] Not Implemented
         return 0
 
+    @staticmethod
+    def _system_states_and_power_reducer(acc, sys: SubsystemBase):
+        acc[0].update({sys.id_: sys.get_states()})
+        return acc[0], acc[1] + sys.power
+
     def get_generation_states(self) -> dict[str, any]:
-        result = {}
-        total_power = 0.0
-        for sys in self.generations:
-            total_power += sys.power
-            result.update({f"{sys.id_}/power": sys.power})
-        self.total_generation = total_power
-        return result
+        reducer = self._system_states_and_power_reducer
+        states, self.total_generation = reduce(reducer, self.generations, ({}, 0))
+        return states
 
     def get_consumption_states(self) -> dict[str, any]:
-        result = {}
-        total_power = 0.0
-        for sys in self.consumptions:
-            total_power += sys.power
-            result.update({f"{sys.id_}/power": sys.power})
-        self.total_consumption = total_power
-        return result
+        reducer = self._system_states_and_power_reducer
+        states, self.total_consumption = reduce(reducer, self.consumptions, ({}, 0))
+        return states
 
     def get_storage_states(self) -> dict[str, any]:
-        return {}
+        raise NotImplementedError()
 
     @property
     def self_consumption(self):
@@ -226,14 +236,12 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         # TODO: update self.total_consumption with storage charge rate if charging
 
         states = {}
-
         if self.subsystem_reporting_enabled:
             states.update(
                 generations=generation_states,
                 consumptions=consumption_states,
                 # TODO: include storage system
             )
-
         states.update(
             generation=self.total_generation,
             consumption=self.total_consumption,
