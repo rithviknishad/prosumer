@@ -219,6 +219,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         self.total_consumption = 0.0
         self.total_generation = 0.0
         self.subsystem_reporting = subsystem_reporting
+        self.generation_states, self.consumption_states = {}, {}
         export_price = (
             self.generations_weighted_unit_export_price
             + self.storages_weighted_unit_export_price
