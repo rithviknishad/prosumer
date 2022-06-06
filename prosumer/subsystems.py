@@ -273,10 +273,9 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
     def net_export_power(self):
         return self.total_generation - self.total_consumption
 
-    @states_setter
-    def on_run(self) -> dict[str, any]:
-        generation_states = self.get_generation_states()
-        consumption_states = self.get_consumption_states()
+    def on_run(self):
+        self.generation_states = self.get_generation_states()
+        self.consumption_states = self.get_consumption_states()
         # TODO: update self.total_consumption with storage charge rate if charging
 
         states = {}
