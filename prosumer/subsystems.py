@@ -219,11 +219,11 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         self.total_consumption = 0.0
         self.total_generation = 0.0
         self.subsystem_reporting = subsystem_reporting
-        unit_export_price = (
+        export_price = (
             self.generations_weighted_unit_export_price
             + self.storages_weighted_unit_export_price
         )
-        super().__init__(can_export=True, unit_export_price=unit_export_price, **kwargs)
+        super().__init__(can_export=True, export_price=export_price, **kwargs)
 
     @cached_property
     def generations_weighted_unit_export_price(self):
