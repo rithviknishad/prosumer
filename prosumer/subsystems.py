@@ -225,6 +225,13 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
             + self.storages_weighted_unit_export_price
         )
         super().__init__(can_export=True, export_price=export_price, **kwargs)
+        self.register_timeseries_fields(
+            "generation",
+            "consumption",
+            "self_consumption",
+            "net_export",
+            "export_price",
+        )
 
     @cached_property
     def generations_weighted_unit_export_price(self):
