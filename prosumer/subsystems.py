@@ -285,22 +285,22 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         self.consumption_states = self.get_consumption_states()
         # TODO: update self.total_consumption with storage charge rate if charging
 
+    @states_setter
+    def get_states(self) -> dict[str, any]:
         states = {}
-
         if "generation" in self.subsystem_reporting:
-            states.update(generations=generation_states)
+            states.update(generations=self.generation_states)
         if "consumption" in self.subsystem_reporting:
-            states.update(consumptions=consumption_states)
+            states.update(consumptions=self.consumption_states)
         # TODO: include storage system
-
         states.update(
-            generation=self.total_generation,
-            consumption=self.total_consumption,
+            generation=self.generation,
+            consumption=self.consumption,
             self_consumption=self.self_consumption,
-            net_export=self.net_export_power,
+            net_export=self.net_export,
             status=self.import_export_status.value,
-            export_price=self.unit_export_price,
+            export_price=self.export_price,
             last_updated_at=datetime.now(),
         )
-
+        states.update(super().get_states())
         return states
