@@ -216,8 +216,8 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         self.generations = generations
         self.storages = storages
         self.set_states = set_states
-        self.total_consumption = 0.0
-        self.total_generation = 0.0
+        self.consumption = 0.0
+        self.generation = 0.0
         self.subsystem_reporting = subsystem_reporting
         self.generation_states, self.consumption_states = {}, {}
         export_price = (
@@ -231,7 +231,7 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
         installed_capacity, wavg_num = 0, 0
         for sys in filter(lambda x: x.export_allowed, self.generations):
             installed_capacity += sys.installed_capacity
-            wavg_num += sys.installed_capacity * sys.unit_export_price
+            wavg_num += sys.installed_capacity * sys.export_price
         return wavg_num / installed_capacity
 
     @cached_property
@@ -246,12 +246,12 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
 
     def get_generation_states(self) -> dict[str, any]:
         reducer = self._system_states_and_power_reducer
-        states, self.total_generation = reduce(reducer, self.generations, ({}, 0))
+        states, self.generation = reduce(reducer, self.generations, ({}, 0))
         return states
 
     def get_consumption_states(self) -> dict[str, any]:
         reducer = self._system_states_and_power_reducer
-        states, self.total_consumption = reduce(reducer, self.consumptions, ({}, 0))
+        states, self.consumption = reduce(reducer, self.consumptions, ({}, 0))
         return states
 
     def get_storage_states(self) -> dict[str, any]:
@@ -259,19 +259,19 @@ class InterconnectedSubsystem(SupportsExport, SubsystemBase):
 
     @property
     def self_consumption(self):
-        return min(self.total_generation, self.total_consumption)
+        return min(self.generation, self.consumption)
 
     @property
     def import_export_status(self):
-        if self.self_consumption < self.total_generation:
+        if self.self_consumption < self.generation:
             return ProsumerStatus.EXPORT
-        if self.self_consumption < self.total_consumption:
+        if self.self_consumption < self.consumption:
             return ProsumerStatus.IMPORT
         return ProsumerStatus.SELF_SUSTAIN
 
     @property
-    def net_export_power(self):
-        return self.total_generation - self.total_consumption
+    def net_export(self):
+        return self.generation - self.consumption
 
     def on_run(self):
         self.generation_states = self.get_generation_states()
