@@ -107,7 +107,7 @@ class SubsystemBase(Base):
         for field in self.timeseries_fields:
             states.update(
                 {
-                    field: self.__dict__[field],
+                    field: getattr(self, field),
                     **self._get_timeseries_field_values(field),
                 }
             )
