@@ -21,6 +21,7 @@ class SubsystemBase(Base):
     auto_start = True
     timeseries_fields: tuple[str] = ()
     moving_avg_periods: tuple[int] = ()
+    auto_invoke_get_states = False
 
     def __init__(self, **kwargs) -> None:
         self.id_ = str(kwargs.pop("id"))
@@ -59,6 +60,8 @@ class SubsystemBase(Base):
         """
         self.on_run()
         self.update_timeseries_fields()
+        if self.auto_invoke_get_states:
+            self.get_states()
 
     def on_run(self):
         raise NotImplementedError("run")
@@ -197,6 +200,9 @@ class Storage(SupportsExport, SubsystemBase):
 
 
 class InterconnectedSubsystem(SupportsExport, SubsystemBase):
+
+    auto_invoke_get_states = True
+
     def __init__(
         self,
         consumptions: list[Consumption],
