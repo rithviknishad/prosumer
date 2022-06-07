@@ -152,11 +152,9 @@ class SubsystemWithProfile(SubsystemBase):
         instant = instant or datetime.now()
         profile = self.compiled_profile
         delta = instant - self.date_started_at
-        lower_idx = delta.seconds // self.profile_interval
-        interop_x = delta.seconds / self.profile_interval % 1
-        lower, upper = profile[lower_idx], profile[lower_idx + 1]
-        curve = Curves.sine if upper > lower else Curves.isine
-        return remap(curve(interop_x), 0, 1, lower, upper)
+        start_idx = delta.seconds // self.profile_interval
+        interop_x = (delta.seconds / self.profile_interval) % 1
+        return remap(Curves.sine(interop_x), 0, 1, *profile[start_idx : start_idx + 2])
 
     def on_run(self):
         self.power = self.get_value()
