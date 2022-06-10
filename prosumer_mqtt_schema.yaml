@@ -1,0 +1,11 @@
+endpoints:
+  - topic: prosumers/{prosumer-id}
+    description: contains meta information about the prosumer
+    writers: [prosumer]
+    format: json
+    payload: {
+
+    }
+
+  - topic: prosumer/{prosumer-id}/generation
+    description: the generation by the prosumer in kwh
